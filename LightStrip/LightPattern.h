@@ -17,6 +17,7 @@ class Pattern : public Adafruit_NeoPixel
     String ActivePattern;
     Themes ActiveTheme;
     int ActiveColor;
+    int ActiveBrightness;
     Directions Direction;
 
     bool SpeedChange = false;   // must be overridden
@@ -79,9 +80,11 @@ class Pattern : public Adafruit_NeoPixel
         OnComplete = callback;
     }
 
-    void Init(Pattern& obj, Themes thm = NORMAL){
+    void Init(Pattern& obj, Themes thm = NORMAL, int brightness = 255){
       obj.ActiveTheme = thm;
       obj.ActivePattern = AvailablePatterns[0]; // Can change on first run
+      obj.ActiveBrightness = brightness
+      obj.setBrightness(obj.ActiveBrightness);
       SetTheme(obj, thm);
       Update(obj);
     }
@@ -128,10 +131,10 @@ class Pattern : public Adafruit_NeoPixel
 
         obj.ColorCollection[0] = Color(255,0,0);    // Red
         obj.ColorCollection[1] = Color(0,255,0);    // Green
-        obj.ColorCollection[2] = 0;                 // None
+        obj.ColorCollection[2] = Color(0,0,0);      // None
         obj.ColorCollection[3] = Color(255,255,255);// White
         obj.ColorCollection[4] = Color(153,153,0);  // Gold
-        obj.ColorCollection[5] = 0;                 // None
+        obj.ColorCollection[5] = Color(0,0,0);      // None
         
         obj.Color1 = obj.ColorCollection[0];
         obj.Color2 = obj.ColorCollection[1];
