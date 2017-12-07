@@ -83,7 +83,7 @@ class Pattern : public Adafruit_NeoPixel
     void Init(Pattern& obj, Themes thm = NORMAL, int brightness = 255){
       obj.ActiveTheme = thm;
       obj.ActivePattern = AvailablePatterns[0]; // Can change on first run
-      obj.ActiveBrightness = brightness
+      obj.ActiveBrightness = brightness;
       obj.setBrightness(obj.ActiveBrightness);
       SetTheme(obj, thm);
       Update(obj);
@@ -379,9 +379,9 @@ class Pattern : public Adafruit_NeoPixel
         int point = start - i;
         if (point < 0) { point = TotalSteps + point; }
         //Serial.println(point);
-        double percent = (float)i/(float)CircleFadeSize;
+        int brightness = 255 * ((float)i/((float)CircleFadeSize * 2));
         //Serial.println(percent);
-        int colorDimmed = DimColorPercent(color, percent);
+        int colorDimmed = DimColorPercent(color, brightness);
         setPixelColor(point, colorDimmed);
       }
       int point = start - CircleFadeSize;
@@ -476,11 +476,14 @@ class Pattern : public Adafruit_NeoPixel
       return dimColor;
     }
 
-    int DimColorPercent(int color, double percent){
-      if (percent == 0) { return color; }
-      int redPart = FlipColor((int)(Red(color)*percent));
-      int greenPart = FlipColor((int)(Green(color)*percent));
-      int bluePart = FlipColor((int)(Blue(color)*percent));
+    int DimColorPercent(int color, double brightness){
+      if (brightness == 255) { return color; }
+      int redPart = FlipColor(brightness*Red(color)/255);
+      int greenPart = FlipColor(brightness*Green(color)/255);
+      int bluePart = FlipColor(brightness*Blue(color)/255);
+//      int redPart = FlipColor((int)(Red(color)*percent));
+//      int greenPart = FlipColor((int)(Green(color)*percent));
+//      int bluePart = FlipColor((int)(Blue(color)*percent));
       int dimColor = Color(redPart, greenPart, bluePart);
       return dimColor;
     }
