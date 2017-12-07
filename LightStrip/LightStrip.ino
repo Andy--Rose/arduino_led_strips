@@ -20,7 +20,7 @@ void setup() {
   Serial.begin(9600);
   strand.begin();
   strand.show();
-  strand.Init(CHRISTMAS, 50);
+  strand.Init(CHRISTMAS, 30);
 
   test();
 }
