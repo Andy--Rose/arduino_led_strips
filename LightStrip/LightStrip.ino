@@ -20,7 +20,7 @@ void setup() {
   Serial.begin(9600);
   strand.begin();
   strand.show();
-  strand.Init(strand, CHRISTMAS, 50);
+  strand.Init(CHRISTMAS, 50);
 
   test();
 }
@@ -37,7 +37,7 @@ void test() {
 }
 
 void loop() {
-  strand.Update(strand);
+  strand.Update();
 }
 
 void PatternComplete() {

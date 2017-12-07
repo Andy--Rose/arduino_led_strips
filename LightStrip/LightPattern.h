@@ -25,6 +25,7 @@ class Pattern : public Adafruit_NeoPixel
     bool ColorChange = false;  // must be overridden
     bool ColorCycle = false;
     bool LockPattern = false;
+    uint32_t WipeColor;
 
     // Active Patterns
     bool TheaterChaseEnabled = true;
@@ -80,79 +81,76 @@ class Pattern : public Adafruit_NeoPixel
         OnComplete = callback;
     }
 
-    void Init(Pattern& obj, Themes thm = NORMAL, int brightness = 255){
-      obj.ActiveTheme = thm;
-      obj.ActivePattern = AvailablePatterns[0]; // Can change on first run
-      obj.ActiveBrightness = brightness;
-      obj.setBrightness(obj.ActiveBrightness);
-      SetTheme(obj, thm);
-      Update(obj);
+    void Init(Themes theme, int brightness = 255){
+      ActivePattern = AvailablePatterns[0]; // Can change on first run
+      ActiveBrightness = brightness;
+      setBrightness(ActiveBrightness);
+      colored_time = millis();
+      InitTheme(theme);
+      lastUpdate = millis() - Interval - 500;
+      Update();
     }
 
     // Set the properties and colors based on the theme
-    void InitTheme(Pattern& obj){
+    void InitTheme(Themes theme){
+      ActiveTheme = theme;
       if (ActiveTheme == NORMAL){
-        obj.ColorChange = true;
-        obj.ColorCycle = false;
-        obj.ColorTimeSeconds = 10;
-        obj.ColorInterval = 30;
-        obj.PatternInterval = 30;
+        ColorChange = true;
+        ColorCycle = false;
+        ColorTimeSeconds = 10;
+        ColorInterval = 30;
+        PatternInterval = 30;
 
-        obj.Color1 = Color(0,255,0);
-        obj.Color1Wheel = 170;
-        obj.Color2 = Color(0,0,255);
-        obj.Color2Wheel = 255;
+        Color1 = Color(0,255,0);
+        Color1Wheel = 170;
+        Color2 = Color(0,0,255);
+        Color2Wheel = 255;
       }
       
       if (ActiveTheme == HALLOWEEN) {
-        obj.ColorChange = false;
-        obj.ColorCycle = true;
-        obj.ColorTimeSeconds = 10;
-        obj.PatternInterval = 30;
+        ColorChange = false;
+        ColorCycle = true;
+        ColorTimeSeconds = 10;
+        PatternInterval = 30;
         
-        obj.ColorCollection[0] = Color(104,0,104);  // Purple
-        obj.ColorCollection[1] = Color(153,153,0);  // Orange
-        obj.ColorCollection[2] = Color(255,0,0);    // Red
-        obj.ColorCollection[3] = Color(255,255,255);// White
-        obj.ColorCollection[4] = Color(80,0,80);  // Purple
-        obj.ColorCollection[5] = Color(0,255,0);    // Green
-        obj.Color1 = ColorCollection[0];
-        obj.Color2 = ColorCollection[1];
+        ColorCollection[0] = Color(104,0,104);  // Purple
+        ColorCollection[1] = Color(153,153,0);  // Orange
+        ColorCollection[2] = Color(255,0,0);    // Red
+        ColorCollection[3] = Color(255,255,255);// White
+        ColorCollection[4] = Color(80,0,80);  // Purple
+        ColorCollection[5] = Color(0,255,0);    // Green
+        Color1 = ColorCollection[0];
+        Color2 = ColorCollection[1];
 
         // deactivate undesired modes
-        obj.RainbowCycleEnabled = false;   
+        RainbowCycleEnabled = false;   
       }
       
       if (ActiveTheme == CHRISTMAS) {
-        obj.ColorChange = false;
-        obj.ColorCycle = true;
-        obj.ColorTimeSeconds = 10;
-        obj.PatternInterval = 30;
-
-        obj.ColorCollection[0] = Color(255,0,0);    // Red
-        obj.ColorCollection[1] = Color(0,255,0);    // Green
-        obj.ColorCollection[2] = Color(0,0,0);      // None
-        obj.ColorCollection[3] = Color(255,255,255);// White
-        obj.ColorCollection[4] = Color(153,153,0);  // Gold
-        obj.ColorCollection[5] = Color(0,0,0);      // None
+        ColorChange = false;
+        ColorCycle = true;
+        ColorTimeSeconds = 10;
+        PatternInterval = 30;
         
-        obj.Color1 = obj.ColorCollection[0];
-        obj.Color2 = obj.ColorCollection[1];
+        ColorCollection[0] = Color(255,0,0);    // Red
+        ColorCollection[1] = Color(0,255,0);    // Green
+        ColorCollection[2] = Color(255,255,255);// White
+        ColorCollection[3] = Color(153,153,0);  // Gold
+        ColorCollection[4] = Color(255,0,0);    // Red
+        ColorCollection[5] = Color(0,255,0);    // Green
+        
+        Color1 = ColorCollection[0];
+        Color2 = ColorCollection[1];
 
         // deactivate undesired modes
-        obj.RainbowCycleEnabled = false;   
+        RainbowCycleEnabled = false;
       }
     }
 
-    void SetTheme(Pattern& obj, Themes thm) {
-      ActiveTheme = thm;
-      InitTheme(obj);
-    }
-
-        // Update the pattern
-    void Update(Pattern& obj){
+    // Update the pattern
+    void Update(){
       if (!LockPattern) { ChangePattern(); }
-      if (ColorChange || ColorCycle) { ChangeColor(obj); }
+      if (ColorChange || ColorCycle) { ChangeColor(); }
       if((millis() - lastUpdate) > Interval){ // time to update
         ChangeSpeed();
         lastUpdate = millis();
@@ -247,7 +245,7 @@ class Pattern : public Adafruit_NeoPixel
       }
     }
 
-    void ChangeColor(Pattern& obj) {
+    void ChangeColor() {
       this_time = millis();
       if((this_time - colored_time) > (ColorTimeSeconds * 1000)) {
         colored_time = millis();
@@ -255,8 +253,8 @@ class Pattern : public Adafruit_NeoPixel
           SetNextColorFromWheel();
         }
         if (ColorCycle) {
-          obj.Color1 = obj.Color2;
-          obj.Color2 = GetNextColorFromCollection();
+          Color1 = Color2;
+          Color2 = GetNextColorFromCollection();
         }
       }
     }
@@ -281,7 +279,7 @@ class Pattern : public Adafruit_NeoPixel
     }
 
     // Initialize for a ColorWipe
-    void ColorWipe(int color1, int color2, uint8_t interval, Directions dir = FORWARD){
+    void ColorWipe(uint32_t color1, uint32_t color2, uint8_t interval, Directions dir = FORWARD){
       Serial.println("Begin ColorWipe");
       ActivePattern = "ColorWipe";
       Interval = interval;
@@ -290,19 +288,19 @@ class Pattern : public Adafruit_NeoPixel
       Color2 = color2;
       Index = 0;
       Direction = dir;
-      wipeColor = Color1;
+      WipeColor = Color1;
     }
 
     // Update the Color Wipe Pattern
     void ColorWipeUpdate(){
-      setPixelColor(Index, wipeColor);
+      setPixelColor(Index, WipeColor);
       show();
       if (Index + 1 == TotalSteps){
-        if (wipeColor == Color1){
-          wipeColor = Color2;
+        if (WipeColor == Color1){
+          WipeColor = Color2;
         }
         else{
-          wipeColor = Color1;
+          WipeColor = Color1;
         }
       }
     }
@@ -325,7 +323,7 @@ class Pattern : public Adafruit_NeoPixel
     }
 
     // Initialize for a Theater Chase
-    void TheaterChase(int color1, int color2, uint8_t interval, uint16_t count, Directions dir = FORWARD){
+    void TheaterChase(uint32_t color1, uint32_t color2, uint8_t interval, uint16_t count, Directions dir = FORWARD){
       Serial.println("Begin TheaterChase");
       ActivePattern = "TheaterChase";
       Interval = interval;
@@ -351,7 +349,7 @@ class Pattern : public Adafruit_NeoPixel
     }
 
     // Initialize for a Circle Fade
-    void CircleFade(int color1, int color2, uint16_t interval, uint16_t fadeLength, bool doubletone = false, Directions dir = FORWARD){
+    void CircleFade(uint32_t color1, uint32_t color2, uint16_t interval, uint16_t fadeLength, bool doubletone = false, Directions dir = FORWARD){
       Serial.println("Begin CircleFade");
       ActivePattern = "CircleFade";
       CircleFadeSize = fadeLength;
@@ -374,7 +372,7 @@ class Pattern : public Adafruit_NeoPixel
       show();
     }
 
-    void CircleFadeSet(int start, int color){
+    void CircleFadeSet(int start, uint32_t color){
       for (int i=0; i < CircleFadeSize; i++){
         int point = start - i;
         if (point < 0) { point = TotalSteps + point; }
@@ -390,7 +388,7 @@ class Pattern : public Adafruit_NeoPixel
     }
 
         // Initialize for a Circle Fade
-    void Clap(int color1, int color2, uint16_t interval, uint16_t len){
+    void Clap(uint32_t color1, uint32_t color2, uint16_t interval, uint16_t len){
       Serial.println("Begin Clap");
       ActivePattern = "Clap";
       Interval = interval;
@@ -446,8 +444,6 @@ class Pattern : public Adafruit_NeoPixel
     
   private:
     bool circleFadeDouble = false;
-
-    int wipeColor;
     
     unsigned long lastUpdate;   // last update of position
     unsigned long this_time = millis();
