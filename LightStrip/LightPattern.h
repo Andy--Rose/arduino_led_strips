@@ -1,5 +1,5 @@
 // TODO: Add ripple effect
-enum Themes { NORMAL, HALLOWEEN };
+enum Themes { NORMAL, HALLOWEEN, CHRISTMAS };
 enum Directions { FORWARD, REVERSE };
 
 #define MIN_CHASE_SPEED 60
@@ -82,8 +82,8 @@ class Pattern : public Adafruit_NeoPixel
     void Init(Pattern& obj, Themes thm = NORMAL){
       obj.ActiveTheme = thm;
       obj.ActivePattern = AvailablePatterns[0]; // Can change on first run
-      InitTheme(*this);
-      Update(*this);
+      SetTheme(obj, thm);
+      Update(obj);
     }
 
     // Set the properties and colors based on the theme
@@ -115,6 +115,26 @@ class Pattern : public Adafruit_NeoPixel
         obj.ColorCollection[5] = Color(0,255,0);    // Green
         obj.Color1 = ColorCollection[0];
         obj.Color2 = ColorCollection[1];
+
+        // deactivate undesired modes
+        obj.RainbowCycleEnabled = false;   
+      }
+      
+      if (ActiveTheme == CHRISTMAS) {
+        obj.ColorChange = false;
+        obj.ColorCycle = true;
+        obj.ColorTimeSeconds = 10;
+        obj.PatternInterval = 30;
+
+        obj.ColorCollection[0] = Color(255,0,0);    // Red
+        obj.ColorCollection[1] = Color(0,255,0);    // Green
+        obj.ColorCollection[2] = 0;                 // None
+        obj.ColorCollection[3] = Color(255,255,255);// White
+        obj.ColorCollection[4] = Color(153,153,0);  // Gold
+        obj.ColorCollection[5] = 0;                 // None
+        
+        obj.Color1 = obj.ColorCollection[0];
+        obj.Color2 = obj.ColorCollection[1];
 
         // deactivate undesired modes
         obj.RainbowCycleEnabled = false;   
